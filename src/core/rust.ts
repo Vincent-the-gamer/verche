@@ -21,7 +21,7 @@ async function getCurrentRustVersion(): Promise<string> {
 }
 
 export async function getRustVersions(): Promise<Versions | null> {
-    logger.info("For Rust, verch is checking cargo version.")
+    logger.info("For Rust, verche is checking cargo version.")
     const currentVersion = await getCurrentRustVersion().catch(err => {
       logger.error(err)
       return null
