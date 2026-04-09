@@ -16,6 +16,9 @@ So, why not to check them together?
 
 ## Usage
 
+> [!IMPORTANT]
+> For astral-sh/uv, verche check the github release latest version, if you have connection issue, use proxy.
+
 No need to install, run it with npx.
 
 See `npx verche --help` for usage.
@@ -46,7 +49,7 @@ npm i verche
 ```
 
 ```ts
-import { getGitVersions, getNodeVersions, getRustVersions } from "verche";
+import { getGitVersions, getNodeVersions, getRustVersions, ... } from "verche";
 
 // get value: { current: 'xxx', latest: 'xxx', latestLTS(if exists): 'xxx' }
 const gitVersions = await getGitVersions()

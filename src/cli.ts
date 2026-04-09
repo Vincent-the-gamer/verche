@@ -3,7 +3,7 @@ import pkgJson from '../package.json'
 import restoreCursor from 'restore-cursor'
 import { logger } from "./utils/logger";
 import { SupportedTools, Versions } from "./types";
-import { getNodeVersions, getRustVersions } from "./core";
+import { getNodeVersions, getRustVersions, getUvVersions } from "./core";
 import { compareVersions } from "./utils/compare";
 import { getGitVersions } from "./core/git";
 
@@ -14,7 +14,8 @@ const { version } = pkgJson
 const nameMap: Record<SupportedTools, string> = {
   node: "Node.js",
   rust: "Rust",
-  git: "Git"
+  git: "Git",
+  uv: "uv"
 }
 
 async function generateLogs(name: SupportedTools, versions: Versions) {
@@ -71,6 +72,15 @@ async function checkGitVersions() {
   }
 }
 
+async function checkUvVersions() {
+  const versions = await getUvVersions()
+  if (versions) {
+    await generateLogs(SupportedTools.UV, versions)
+  } else {
+    logger.warn("uv version checked failed, skipping.")
+  }
+}
+
 async function checkSpecificTool(name: SupportedTools) {
   if(!Object.values(SupportedTools).includes(name)) {
     logger.error(`Unsupported tool: ${name}`)
@@ -86,6 +96,9 @@ async function checkSpecificTool(name: SupportedTools) {
       break
     case SupportedTools.Git:
       await checkGitVersions()
+      break
+    case SupportedTools.UV:
+      await checkUvVersions()
       break
     default:
       logger.error(`Not matched: ${name}`)

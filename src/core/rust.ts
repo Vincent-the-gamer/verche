@@ -1,6 +1,6 @@
 import { load } from "cheerio/slim";
 import { exec } from "child_process";
-import { Versions } from "../types";
+import { SupportedTools, Versions } from "../types";
 import axios from "../utils/axios";
 import { logger } from "../utils/logger";
 
@@ -28,14 +28,14 @@ export async function getRustVersions(): Promise<Versions | null> {
     });
 
   if (!currentVersion) {
-      logger.error("You are not using Rust.")
+      logger.error(`You are not using ${SupportedTools.Rust}.`)
       return null
     }
 
     const { data } = await axios.get('https://www.rust-lang.org/');
 
     if (!data) {
-      logger.error("Failed to fetch Rust official site's version data.")
+      logger.error(`Failed to fetch ${SupportedTools.Rust} official site's version data.`)
       return null
     }
 

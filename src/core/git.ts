@@ -1,6 +1,6 @@
 import { exec } from "child_process";
 import { logger } from "../utils/logger";
-import { Versions } from "../types";
+import { SupportedTools, Versions } from "../types";
 import axios from "axios";
 import { load } from "cheerio/slim";
 
@@ -27,14 +27,14 @@ export async function getGitVersions(): Promise<Versions | null> {
   });
 
   if (!currentVersion) {
-    logger.error("You are not using Git.")
+    logger.error(`You are not using ${SupportedTools.Git}.`)
     return null
   }
 
   const { data } = await axios.get('https://git-scm.com/');
 
   if (!data) {
-    logger.error("Failed to fetch Git official site's version data.")
+    logger.error(`Failed to fetch ${SupportedTools.Git} official site's version data.`)
     return null
   }
 

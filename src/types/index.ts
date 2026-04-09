@@ -7,5 +7,6 @@ export interface Versions {
 export enum SupportedTools {
   Node = 'node',
   Git = 'git',
-  Rust = 'rust'
+  Rust = 'rust',
+  UV = 'uv',
 }
