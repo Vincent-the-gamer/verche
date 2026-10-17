@@ -2,14 +2,33 @@ import cac, { CAC } from "cac";
 import pkgJson from '../package.json'
 import restoreCursor from 'restore-cursor'
 import { logger } from "./utils/logger";
-import { SupportedTools, Versions } from "./types";
-import { getNodeVersions, getRustVersions, getUvVersions, getGitVersions, getBrewVersions } from "./core";
+import { SupportedPlatforms, SupportedTools, Versions } from "./types";
+import {
+  getNodeVersions,
+  getRustVersions,
+  getUvVersions,
+  getGitVersions,
+  getBrewVersions,
+  platformTools,
+  getCurrentPlatform,
+  PlatformToolChecker,
+} from "./core";
 import { compareVersions } from "./utils/compare";
 
 const cli: CAC = cac("verche")
 
 const { version } = pkgJson
 
+const generalTools: Partial<Record<SupportedTools, PlatformToolChecker>> = {
+  [SupportedTools.Node]: getNodeVersions,
+  [SupportedTools.Rust]: getRustVersions,
+  [SupportedTools.Git]: getGitVersions,
+  [SupportedTools.UV]: getUvVersions,
+  [SupportedTools.Brew]: getBrewVersions,
+}
+
+const generalToolNames = Object.keys(generalTools) as SupportedTools[]
+const platformNames = Object.values(SupportedPlatforms)
 
 async function generateLogs(tool: SupportedTools, versions: Versions) {
   if (versions.latestLTS) {
@@ -38,103 +57,125 @@ async function generateLogs(tool: SupportedTools, versions: Versions) {
   logger.log("\n")
 }
 
-async function checkNodeVersions() {
-  const versions = await getNodeVersions()
+function isSupportedPlatform(value: string): value is SupportedPlatforms {
+  return (platformNames as string[]).includes(value)
+}
+
+function parsePlatformOption(value?: string): {
+  platform: SupportedPlatforms | null
+  valid: boolean
+} {
+  if (!value) {
+    return { platform: getCurrentPlatform(), valid: true }
+  }
+
+  if (isSupportedPlatform(value)) {
+    return { platform: value, valid: true }
+  }
+
+  return { platform: null, valid: false }
+}
+
+function logInvalidPlatform(value: string) {
+  logger.error(`Unsupported platform: ${value}. Supported platforms: ${platformNames.join(", ")}`)
+}
+
+async function checkTool(name: SupportedTools, checker: PlatformToolChecker) {
+  const versions = await checker()
+
   if (versions) {
-    await generateLogs(SupportedTools.Node, versions)
+    await generateLogs(name, versions)
   } else {
-    logger.warn("Node version checked failed, skipping.")
+    logger.warn(`${name} version checked failed, skipping.`)
   }
 }
 
-async function checkRustVersions() {
-  const versions = await getRustVersions()
-  if (versions) {
-    await generateLogs(SupportedTools.Rust, versions)
-  } else {
-    logger.warn("Node version checked failed, skipping.")
-  }
-}
-
-async function checkGitVersions() {
-  const versions = await getGitVersions()
-  if (versions) {
-    await generateLogs(SupportedTools.Git, versions)
-  } else {
-    logger.warn("Node version checked failed, skipping.")
-  }
-}
-
-async function checkUvVersions() {
-  const versions = await getUvVersions()
-  if (versions) {
-    await generateLogs(SupportedTools.UV, versions)
-  } else {
-    logger.warn("uv version checked failed, skipping.")
-  }
-}
-
-async function checkBrewVersions() {
-  const versions = await getBrewVersions()
-  if (versions) {
-    await generateLogs(SupportedTools.Brew, versions)
-  } else {
-    logger.warn("uv version checked failed, skipping.")
-  }
-}
-
-async function checkSpecificTool(name: SupportedTools) {
-  if(!Object.values(SupportedTools).includes(name)) {
+async function checkSpecificTool(name: SupportedTools, platform: SupportedPlatforms | null) {
+  if (!Object.values(SupportedTools).includes(name)) {
     logger.error(`Unsupported tool: ${name}`)
     return
   }
 
-  switch(name) {
-    case SupportedTools.Node:
-      await checkNodeVersions()
-      break
-    case SupportedTools.Rust:
-      await checkRustVersions()
-      break
-    case SupportedTools.Git:
-      await checkGitVersions()
-      break
-    case SupportedTools.UV:
-      await checkUvVersions()
-      break
-    case SupportedTools.Brew:
-      await checkBrewVersions()
-      break
-    default:
-      logger.error(`Not matched: ${name}`)
-      break
+  const generalChecker = generalTools[name]
+
+  if (generalChecker) {
+    await checkTool(name, generalChecker)
+    return
+  }
+
+  if (!platform) {
+    logger.error(`Cannot check ${name}: no platform-specific tools for the current platform.`)
+    return
+  }
+
+  const platformChecker = platformTools[platform][name]
+
+  if (!platformChecker) {
+    logger.error(`${name} is not supported on ${platform}.`)
+    return
+  }
+
+  await checkTool(name, platformChecker)
+}
+
+async function checkAllTools(platform: SupportedPlatforms | null) {
+  for (const tool of generalToolNames) {
+    await checkSpecificTool(tool, platform)
+  }
+
+  if (!platform) {
+    return
+  }
+
+  for (const tool of Object.keys(platformTools[platform]) as SupportedTools[]) {
+    await checkSpecificTool(tool, platform)
   }
 }
 
-async function checkAllTools() {
-  for (const tool of Object.values(SupportedTools)) {
-    await checkSpecificTool(tool)
-  }
-}
+const platformOption = `--platform, -p <platform>`
+const platformOptionDescription = `check tools for a specific platform (${platformNames.join(", ")}). Defaults to the current platform.`
 
 cli.command("check", "check for versions.")
   .alias("chk")
   .option("--name, -n <name>", "check for versions of a specific tool.")
+  .option(platformOption, platformOptionDescription)
   .action(async (options) => {
+    const { platform, valid } = parsePlatformOption(options.platform)
+
+    if (!valid) {
+      logInvalidPlatform(options.platform)
+      return
+    }
+
     const { name } = options
 
     if (name) {
-      await checkSpecificTool(name as SupportedTools)
+      await checkSpecificTool(name as SupportedTools, platform)
     } else {
-      await checkAllTools()
+      await checkAllTools(platform)
     }
   })
 
 
 cli.command("list", "list all supported tools.")
   .alias("ls")
-  .action(() => {
-    logger.success(`Supported tools: ${Object.values(SupportedTools).join(", ")}`)
+  .option(platformOption, platformOptionDescription)
+  .action((options) => {
+    const { platform, valid } = parsePlatformOption(options.platform)
+
+    if (!valid) {
+      logInvalidPlatform(options.platform)
+      return
+    }
+
+    logger.success(`Supported tools: ${generalToolNames.join(", ")}`)
+
+    if (platform) {
+      const platformToolNames = Object.keys(platformTools[platform])
+      logger.success(`Supported ${platform} tools: ${platformToolNames.join(", ") || "none"}`)
+    } else {
+      logger.info(`No platform-specific tools for the current platform.`)
+    }
   })
 
 cli.help()

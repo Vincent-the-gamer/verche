@@ -9,5 +9,11 @@ export enum SupportedTools {
   Git = 'git',
   Rust = 'rust',
   UV = 'uv',
-  Brew = 'brew'
+  Brew = 'brew',
+  LocalSend = 'localsend'
+}
+
+export enum SupportedPlatforms {
+  MacOS = 'macos',
+  Windows = 'windows'
 }

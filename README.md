@@ -10,7 +10,7 @@ Quickly check versions of your toolchains.
 
 ## Why verche?
 
-I think I'm a little obsessive-compulsive about keeping my dev toolchains newest(or at latest LTS version), like node, uv, git and etc. I'm always checking versions from the official sites of them.
+I think I'm a little obsessive-compulsive about keeping my dev toolchains and productivity tools newest(or at latest LTS version), like node, uv, git and etc. I'm always checking versions from the official sites of them.
 
 So, why not to check them together?
 
@@ -18,6 +18,8 @@ So, why not to check them together?
 
 > [!IMPORTANT]
 > Currently support: node, rust, git, uv, brew.
+>
+> Platform-specific tools: localsend (macOS / Windows).
 >
 > If you have connection issue, use proxy.
 
@@ -28,16 +30,27 @@ See `npx verche --help` for usage.
 Example:
 
 ```bash
-# list all supported tools
+# list all supported tools for the current platform
 # alias for list: ls
 npx verche list
 
-# check all supported tools.
+# list tools for a specific platform
+npx verche list --platform windows
+
+# check all supported tools for the current platform.
 # alias for check: chk
 npx verche check
 
 # check specific tool, -n: --name
 npx verche check -n rust
+
+# check a platform-specific tool. The platform is detected automatically.
+npx verche check -n localsend
+
+# check tools for a specific platform, -p: --platform
+# supported platforms: macos, windows
+npx verche check -p macos
+npx verche check -p windows
 ```
 
 https://github.com/user-attachments/assets/72e30149-125e-4634-8e54-cdf79bb3bca4
@@ -51,13 +64,17 @@ npm i verche
 ```
 
 ```ts
-import { getGitVersions, getNodeVersions, getRustVersions, ... } from "verche";
+import { getGitVersions, getNodeVersions, getRustVersions, mac, windows, ... } from "verche";
 
 // get value: { current: 'xxx', latest: 'xxx', latestLTS(if exists): 'xxx' }
 const gitVersions = await getGitVersions()
 const nodeVersions = await getNodeVersions()
 const rustVersions = await getRustVersions()
 ...
+
+// platform-specific tools are namespaced
+const macLocalSendVersions = await mac.getLocalSendVersions()
+const windowsLocalSendVersions = await windows.getLocalSendVersions()
 ```
 
 ## License
