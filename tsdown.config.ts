@@ -6,7 +6,9 @@ export default defineConfig({
   ],
   clean: true,
   format: ["esm", "cjs"],
-  dts: true,
+  dts: {
+    generator: 'oxc',
+  },
   minify: true,
   // compatible with __dirname in cjs and import.meta.url in mjs.
   shims: true
