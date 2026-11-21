@@ -17,7 +17,7 @@ So, why not to check them together?
 ## Usage
 
 > [!IMPORTANT]
-> Currently support: node, rust, git, uv, brew.
+> Currently support: node, rust, git, uv, brew, kitty.
 >
 > Platform-specific tools: localsend (macOS / Windows).
 >
@@ -51,6 +51,9 @@ npx verche check -n localsend
 # supported platforms: macos, windows
 npx verche check -p macos
 npx verche check -p windows
+
+# only print errors, suppress the rest of the output
+npx verche check --silent
 ```
 
 https://github.com/user-attachments/assets/72e30149-125e-4634-8e54-cdf79bb3bca4
@@ -64,12 +67,13 @@ npm i verche
 ```
 
 ```ts
-import { getGitVersions, getNodeVersions, getRustVersions, mac, windows, ... } from "verche";
+import { getGitVersions, getNodeVersions, getRustVersions, getKittyVersions, mac, windows, ... } from "verche";
 
 // get value: { current: 'xxx', latest: 'xxx', latestLTS(if exists): 'xxx' }
 const gitVersions = await getGitVersions()
 const nodeVersions = await getNodeVersions()
 const rustVersions = await getRustVersions()
+const kittyVersions = await getKittyVersions()
 ...
 
 // platform-specific tools are namespaced

@@ -1,6 +1,6 @@
 {
   "name": "verche",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "description": "Quickly check versions of your toolchains.",
   "author": "Vincent-the-gamer",
@@ -32,7 +32,10 @@
     "tsx": "tsx",
     "build": "tsdown",
     "test": "vitest",
-    "dep": "taze major -I"
+    "dep": "taze major -I",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "knip": "knip"
   },
   "license": "MIT",
   "homepage": "https://github.com/Vincent-the-gamer/verche#readme",
@@ -49,19 +52,21 @@
   },
   "sideEffects": false,
   "devDependencies": {
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
+    "knip": "^6.46.1",
+    "oxlint": "^1.94.0",
     "taze": "^21.3.0",
-    "tsdown": "^0.23.1",
+    "tsdown": "^0.23.7",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.1"
   },
   "dependencies": {
-    "axios": "^1.20.0",
-    "cac": "^7.1.0",
+    "axios": "^1.21.1",
+    "cac": "^7.1.1",
     "cheerio": "^1.2.0",
     "consola": "^3.4.2",
-    "plist": "^5.0.0",
+    "plist": "^5.1.2",
     "restore-cursor": "^5.1.0"
   }
 }

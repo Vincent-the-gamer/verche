@@ -10,7 +10,8 @@ export enum SupportedTools {
   Rust = 'rust',
   UV = 'uv',
   Brew = 'brew',
-  LocalSend = 'localsend'
+  LocalSend = 'localsend',
+  Kitty = 'kitty'
 }
 
 export enum SupportedPlatforms {

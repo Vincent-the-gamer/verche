@@ -1,7 +1,7 @@
 import cac, { CAC } from "cac";
 import pkgJson from '../package.json'
 import restoreCursor from 'restore-cursor'
-import { logger } from "./utils/logger";
+import { logger, setSilent } from "./utils/logger";
 import { SupportedPlatforms, SupportedTools, Versions } from "./types";
 import {
   getNodeVersions,
@@ -9,6 +9,7 @@ import {
   getUvVersions,
   getGitVersions,
   getBrewVersions,
+  getKittyVersions,
   platformTools,
   getCurrentPlatform,
   PlatformToolChecker,
@@ -25,6 +26,7 @@ const generalTools: Partial<Record<SupportedTools, PlatformToolChecker>> = {
   [SupportedTools.Git]: getGitVersions,
   [SupportedTools.UV]: getUvVersions,
   [SupportedTools.Brew]: getBrewVersions,
+  [SupportedTools.Kitty]: getKittyVersions,
 }
 
 const generalToolNames = Object.keys(generalTools) as SupportedTools[]
@@ -135,11 +137,15 @@ async function checkAllTools(platform: SupportedPlatforms | null) {
 const platformOption = `--platform, -p <platform>`
 const platformOptionDescription = `check tools for a specific platform (${platformNames.join(", ")}). Defaults to the current platform.`
 
+cli.option("--silent", "only print errors, suppress the rest of the output.")
+
 cli.command("check", "check for versions.")
   .alias("chk")
   .option("--name, -n <name>", "check for versions of a specific tool.")
   .option(platformOption, platformOptionDescription)
   .action(async (options) => {
+    setSilent(Boolean(options.silent))
+
     const { platform, valid } = parsePlatformOption(options.platform)
 
     if (!valid) {
@@ -161,6 +167,8 @@ cli.command("list", "list all supported tools.")
   .alias("ls")
   .option(platformOption, platformOptionDescription)
   .action((options) => {
+    setSilent(Boolean(options.silent))
+
     const { platform, valid } = parsePlatformOption(options.platform)
 
     if (!valid) {
